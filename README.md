@@ -229,8 +229,8 @@ ecommerce-chat-helper/
 
 ## 👨‍💻 Tác Giả
 
-Đặng Gia Nguyên
-Nguyễn Thanh Mạnh Hùng
+- Đặng Gia Nguyên
+- Nguyễn Thanh Mạnh Hùng
 
 ---
 
