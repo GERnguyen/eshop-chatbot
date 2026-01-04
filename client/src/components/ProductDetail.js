@@ -28,6 +28,8 @@ const ProductDetail = () => {
   // Modal states
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  // Toast state
+  const [toast, setToast] = useState({ show: false, message: "", type: "" });
   // Cart and wishlist items from localStorage
   const [cartItems, setCartItems] = useState(() => {
     const saved = localStorage.getItem("cartItems");
@@ -47,6 +49,12 @@ const ProductDetail = () => {
   const getFavoritesCount = () => {
     const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
     return favs.length;
+  };
+
+  // Show toast notification
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
   };
 
   const [cartCount, setCartCount] = useState(getCartCount);
@@ -205,6 +213,7 @@ const ProductDetail = () => {
     setCartCount(
       existingCart.reduce((total, item) => total + (item.quantity || 1), 0)
     );
+    showToast(`${product.item_name} added to cart!`, "cart");
     setTimeout(() => setAddedToCart(false), 2000);
 
     // Dispatch custom event to notify other components
@@ -222,10 +231,12 @@ const ProductDetail = () => {
       );
       localStorage.setItem("favorites", JSON.stringify(filtered));
       setFavoritesCount(filtered.length);
+      showToast(`${product.item_name} removed from wishlist`, "wishlist");
     } else {
       existingFavorites.push(product);
       localStorage.setItem("favorites", JSON.stringify(existingFavorites));
       setFavoritesCount(existingFavorites.length);
+      showToast(`${product.item_name} added to wishlist!`, "wishlist");
     }
 
     setIsFavorite(!isFavorite);
@@ -698,6 +709,14 @@ const ProductDetail = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`toast-notification ${toast.type}`}>
+          <FaCheck className="toast-icon" />
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

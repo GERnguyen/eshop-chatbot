@@ -3,7 +3,14 @@ import React, { useState, useEffect, useRef } from "react";
 // Import useNavigate for programmatic navigation
 import { useNavigate } from "react-router-dom";
 // Import Font Awesome icons for the chat interface
-import { FaRobot, FaPaperPlane, FaTimes, FaCommentDots } from "react-icons/fa";
+import {
+  FaRobot,
+  FaPaperPlane,
+  FaTimes,
+  FaCommentDots,
+  FaMinus,
+  FaTrash,
+} from "react-icons/fa";
 // Import ReactMarkdown for rendering markdown in chat messages
 import ReactMarkdown from "react-markdown";
 
@@ -70,10 +77,23 @@ const ChatWidget = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]); // Dependency: re-run whenever messages array changes
 
-  // Function to toggle chat window open/closed
-  const toggleChat = () => {
-    // Flip the current isOpen state (true becomes false, false becomes true)
-    setIsOpen(!isOpen);
+  // Function to toggle chat window open/closed (hide only)
+  const hideChat = () => {
+    setIsOpen(false);
+  };
+
+  // Function to close chat and clear all messages
+  const closeAndClearChat = () => {
+    setIsOpen(false);
+    setMessages([]);
+    setThreadId(null);
+    localStorage.removeItem("chatMessages");
+    localStorage.removeItem("chatThreadId");
+  };
+
+  // Function to open chat
+  const openChat = () => {
+    setIsOpen(true);
   };
 
   // Ref to reference the textarea for auto-resize
@@ -181,10 +201,23 @@ const ChatWidget = () => {
               {/* Chat title text */}
               <h3>Shop Assistant</h3>
             </div>
-            {/* Close button with X icon */}
-            <button className="close-button" onClick={toggleChat}>
-              <FaTimes />
-            </button>
+            {/* Header buttons: hide and close+clear */}
+            <div className="chat-header-buttons">
+              <button
+                className="hide-button"
+                onClick={hideChat}
+                title="Hide chat"
+              >
+                <FaMinus />
+              </button>
+              <button
+                className="close-button"
+                onClick={closeAndClearChat}
+                title="Close and clear chat"
+              >
+                <FaTrash />
+              </button>
+            </div>
           </div>
 
           {/* Messages container */}
@@ -289,7 +322,7 @@ const ChatWidget = () => {
         </>
       ) : (
         /* Chat toggle button (shown when chat is closed) */
-        <button className="chat-button" onClick={toggleChat}>
+        <button className="chat-button" onClick={openChat}>
           {/* Comment/chat icon */}
           <FaCommentDots />
         </button>

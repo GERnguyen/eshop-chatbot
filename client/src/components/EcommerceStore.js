@@ -13,6 +13,9 @@ import {
   FaPlus,
   FaMinus,
   FaTrash,
+  FaChevronDown,
+  FaChevronUp,
+  FaCheck,
 } from "react-icons/fa";
 // Import the custom ChatWidget component for AI assistance
 import ChatWidget from "./ChatWidget";
@@ -41,6 +44,16 @@ const EcommerceStore = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   // State for wishlist modal visibility
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  // State for toast notification
+  const [toast, setToast] = useState({ show: false, message: "", type: "" });
+  // State for showing all categories
+  const [showAllCategories, setShowAllCategories] = useState(false);
+
+  // Show toast notification
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+  };
 
   // Sync cart to localStorage whenever it changes
   useEffect(() => {
@@ -132,6 +145,7 @@ const EcommerceStore = () => {
       // Add new item with quantity 1
       return [...prevItems, { ...product, quantity: 1 }];
     });
+    showToast(`${product.item_name} added to cart!`, "cart");
   };
 
   // Remove item from cart
@@ -156,15 +170,20 @@ const EcommerceStore = () => {
 
   // Toggle favorite status
   const toggleFavorite = (product) => {
+    const isCurrentlyFavorite = favorites.some(
+      (item) => item.item_id === product.item_id
+    );
     setFavorites((prevFavorites) => {
-      const isFavorite = prevFavorites.some(
-        (item) => item.item_id === product.item_id
-      );
-      if (isFavorite) {
+      if (isCurrentlyFavorite) {
         return prevFavorites.filter((item) => item.item_id !== product.item_id);
       }
       return [...prevFavorites, product];
     });
+    if (isCurrentlyFavorite) {
+      showToast(`${product.item_name} removed from wishlist`, "wishlist");
+    } else {
+      showToast(`${product.item_name} added to wishlist!`, "wishlist");
+    }
   };
 
   // Check if product is in favorites
@@ -252,17 +271,35 @@ const EcommerceStore = () => {
         {/* Category Filter */}
         <div className="container">
           <div className="category-filter">
-            {categories.map((category) => (
+            {(showAllCategories ? categories : categories.slice(0, 5)).map(
+              (category) => (
+                <button
+                  key={category}
+                  className={`category-btn ${
+                    selectedCategory === category ? "active" : ""
+                  }`}
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category}
+                </button>
+              )
+            )}
+            {categories.length > 5 && (
               <button
-                key={category}
-                className={`category-btn ${
-                  selectedCategory === category ? "active" : ""
-                }`}
-                onClick={() => setSelectedCategory(category)}
+                className="category-btn show-more-btn"
+                onClick={() => setShowAllCategories(!showAllCategories)}
               >
-                {category}
+                {showAllCategories ? (
+                  <>
+                    <FaChevronUp /> Less
+                  </>
+                ) : (
+                  <>
+                    <FaChevronDown /> +{categories.length - 5} More
+                  </>
+                )}
               </button>
-            ))}
+            )}
           </div>
         </div>
 
@@ -610,6 +647,14 @@ const EcommerceStore = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`toast-notification ${toast.type}`}>
+          <FaCheck className="toast-icon" />
+          <span>{toast.message}</span>
         </div>
       )}
     </>
