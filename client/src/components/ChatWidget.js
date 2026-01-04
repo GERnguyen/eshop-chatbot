@@ -1,20 +1,52 @@
 // Import React and its hooks for component state and lifecycle management
 import React, { useState, useEffect, useRef } from 'react'
+// Import useNavigate for programmatic navigation
+import { useNavigate } from 'react-router-dom'
 // Import Font Awesome icons for the chat interface
 import { FaRobot, FaPaperPlane, FaTimes, FaCommentDots } from 'react-icons/fa'
+// Import ReactMarkdown for rendering markdown in chat messages
+import ReactMarkdown from 'react-markdown'
 
 // Main chat widget component
 const ChatWidget = () => {
-  // State to track if chat window is open or closed
-  const [isOpen, setIsOpen] = useState(false)
-  // State to store all chat messages (array of message objects)
-  const [messages, setMessages] = useState([])
+  // Hook for programmatic navigation
+  const navigate = useNavigate()
+  
+  // State to track if chat window is open or closed - restore from localStorage
+  const [isOpen, setIsOpen] = useState(() => {
+    const saved = localStorage.getItem('chatWidgetOpen')
+    return saved === 'true'
+  })
+  // State to store all chat messages - restore from localStorage
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('chatMessages')
+    return saved ? JSON.parse(saved) : []
+  })
   // State to track current input field value
   const [inputValue, setInputValue] = useState('')
-  // State to store conversation thread ID (null for new conversations)
-  const [threadId, setThreadId] = useState(null)
+  // State to store conversation thread ID - restore from localStorage
+  const [threadId, setThreadId] = useState(() => {
+    return localStorage.getItem('chatThreadId') || null
+  })
   // Ref to reference the bottom of messages container for auto-scrolling
   const messagesEndRef = useRef(null)
+
+  // Effect hook: Save messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('chatMessages', JSON.stringify(messages))
+  }, [messages])
+
+  // Effect hook: Save isOpen state to localStorage
+  useEffect(() => {
+    localStorage.setItem('chatWidgetOpen', isOpen.toString())
+  }, [isOpen])
+
+  // Effect hook: Save threadId to localStorage
+  useEffect(() => {
+    if (threadId) {
+      localStorage.setItem('chatThreadId', threadId)
+    }
+  }, [threadId])
 
   // Effect hook: Show initial greeting when chat is first opened
   useEffect(() => {
@@ -161,8 +193,43 @@ const ChatWidget = () => {
               <div key={index}>
                 {/* Message bubble with conditional CSS class for styling */}
                 <div className={`message ${message.isAgent ? 'message-bot' : 'message-user'}`}>
-                  {/* Display message text */}
-                  {message.text}
+                  {/* Display message - render markdown for bot messages */}
+                  {message.isAgent ? (
+                    <div className="markdown-content">
+                      <ReactMarkdown
+                        components={{
+                          // Custom link renderer to use React Router navigation
+                          a: ({ href, children }) => {
+                            // Check if it's an internal link (starts with /)
+                            if (href && href.startsWith('/')) {
+                              return (
+                                <a
+                                  href={href}
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    navigate(href)
+                                  }}
+                                  style={{ color: '#4a00e0', textDecoration: 'underline', cursor: 'pointer' }}
+                                >
+                                  {children}
+                                </a>
+                              )
+                            }
+                            // External links open in new tab
+                            return (
+                              <a href={href} target="_blank" rel="noopener noreferrer">
+                                {children}
+                              </a>
+                            )
+                          }
+                        }}
+                      >
+                        {message.text}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    message.text
+                  )}
                 </div>
               </div>
             ))}

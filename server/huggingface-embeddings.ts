@@ -12,15 +12,17 @@ const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL
  */
 export async function getHuggingFaceEmbedding(text: string): Promise<number[]> {
   const apiKey = process.env.HUGGINGFACEHUB_API_KEY;
-  
+
   if (!apiKey) {
-    throw new Error("HUGGINGFACEHUB_API_KEY is not set in environment variables");
+    throw new Error(
+      "HUGGINGFACEHUB_API_KEY is not set in environment variables"
+    );
   }
 
   const response = await fetch(HF_API_URL, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ inputs: text }),
@@ -32,7 +34,7 @@ export async function getHuggingFaceEmbedding(text: string): Promise<number[]> {
   }
 
   const embedding = await response.json();
-  
+
   // The API returns the embedding directly as an array of numbers
   return embedding as number[];
 }
@@ -40,17 +42,21 @@ export async function getHuggingFaceEmbedding(text: string): Promise<number[]> {
 /**
  * Get embeddings for multiple texts (batch)
  */
-export async function getHuggingFaceEmbeddings(texts: string[]): Promise<number[][]> {
+export async function getHuggingFaceEmbeddings(
+  texts: string[]
+): Promise<number[][]> {
   const apiKey = process.env.HUGGINGFACEHUB_API_KEY;
-  
+
   if (!apiKey) {
-    throw new Error("HUGGINGFACEHUB_API_KEY is not set in environment variables");
+    throw new Error(
+      "HUGGINGFACEHUB_API_KEY is not set in environment variables"
+    );
   }
 
   const response = await fetch(HF_API_URL, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ inputs: texts }),

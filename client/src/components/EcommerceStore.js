@@ -1,5 +1,7 @@
 // Import React hooks for state and lifecycle management
 import React, { useState, useEffect } from "react";
+// Import Link for navigation
+import { Link } from "react-router-dom";
 // Import Font Awesome icons for UI elements (search, cart, user, heart)
 import {
   FaSearch,
@@ -25,14 +27,50 @@ const EcommerceStore = () => {
   const [searchQuery, setSearchQuery] = useState("");
   // State for selected category
   const [selectedCategory, setSelectedCategory] = useState("All");
-  // State for cart items
-  const [cartItems, setCartItems] = useState([]);
-  // State for favorite/wishlist items
-  const [favorites, setFavorites] = useState([]);
+  // State for cart items - initialize from localStorage
+  const [cartItems, setCartItems] = useState(() => {
+    const saved = localStorage.getItem("cartItems");
+    return saved ? JSON.parse(saved) : [];
+  });
+  // State for favorite/wishlist items - initialize from localStorage
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem("favorites");
+    return saved ? JSON.parse(saved) : [];
+  });
   // State for cart modal visibility
   const [isCartOpen, setIsCartOpen] = useState(false);
   // State for wishlist modal visibility
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+
+  // Sync cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  // Sync favorites to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+  }, [favorites]);
+
+  // Listen for cart/favorites updates from other pages (like ProductDetail)
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      const saved = localStorage.getItem("cartItems");
+      if (saved) setCartItems(JSON.parse(saved));
+    };
+    const handleFavoritesUpdate = () => {
+      const saved = localStorage.getItem("favorites");
+      if (saved) setFavorites(JSON.parse(saved));
+    };
+    
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    window.addEventListener("favoritesUpdated", handleFavoritesUpdate);
+    
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+      window.removeEventListener("favoritesUpdated", handleFavoritesUpdate);
+    };
+  }, []);
 
   // Fetch products from API on component mount
   useEffect(() => {
@@ -218,36 +256,40 @@ const EcommerceStore = () => {
               <div className="products-grid">
                 {filteredProducts.map((product) => (
                   <div key={product.item_id} className="product-card">
-                    <div className="product-image">
-                      <img
-                        src={
-                          product.image_url ||
-                          "https://via.placeholder.com/400x300?text=No+Image"
-                        }
-                        alt={product.item_name}
-                      />
-                      {product.prices.sale_price <
-                        product.prices.full_price && (
-                        <span className="sale-badge">
-                          {Math.round(
-                            (1 -
-                              product.prices.sale_price /
-                                product.prices.full_price) *
-                              100
-                          )}
-                          % OFF
-                        </span>
-                      )}
-                      <button 
-                        className={`wishlist-btn ${isFavorite(product.item_id) ? 'active' : ''}`}
-                        onClick={() => toggleFavorite(product)}
-                      >
-                        <FaHeart />
-                      </button>
-                    </div>
+                    <Link to={`/product/${product.item_id}`} className="product-image-link">
+                      <div className="product-image">
+                        <img
+                          src={
+                            product.image_url ||
+                            "https://via.placeholder.com/400x300?text=No+Image"
+                          }
+                          alt={product.item_name}
+                        />
+                        {product.prices.sale_price <
+                          product.prices.full_price && (
+                          <span className="sale-badge">
+                            {Math.round(
+                              (1 -
+                                product.prices.sale_price /
+                                  product.prices.full_price) *
+                                100
+                            )}
+                            % OFF
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                    <button 
+                      className={`wishlist-btn ${isFavorite(product.item_id) ? 'active' : ''}`}
+                      onClick={() => toggleFavorite(product)}
+                    >
+                      <FaHeart />
+                    </button>
                     <div className="product-info">
                       <span className="product-brand">{product.brand}</span>
-                      <h3 className="product-name">{product.item_name}</h3>
+                      <Link to={`/product/${product.item_id}`} className="product-name-link">
+                        <h3 className="product-name">{product.item_name}</h3>
+                      </Link>
                       <p className="product-description">
                         {product.item_description}
                       </p>
