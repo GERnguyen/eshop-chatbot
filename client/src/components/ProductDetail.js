@@ -43,7 +43,7 @@ const ProductDetail = () => {
     const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
     return cart.reduce((total, item) => total + (item.quantity || 1), 0);
   };
-  
+
   const getFavoritesCount = () => {
     const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
     return favs.length;
@@ -56,11 +56,11 @@ const ProductDetail = () => {
   useEffect(() => {
     const handleCartUpdate = () => setCartCount(getCartCount());
     const handleFavoritesUpdate = () => setFavoritesCount(getFavoritesCount());
-    
+
     window.addEventListener("cartUpdated", handleCartUpdate);
     window.addEventListener("favoritesUpdated", handleFavoritesUpdate);
     window.addEventListener("storage", handleCartUpdate);
-    
+
     return () => {
       window.removeEventListener("cartUpdated", handleCartUpdate);
       window.removeEventListener("favoritesUpdated", handleFavoritesUpdate);
@@ -85,25 +85,29 @@ const ProductDetail = () => {
       removeFromCartModal(itemId);
       return;
     }
-    const updated = cartItems.map(item =>
+    const updated = cartItems.map((item) =>
       item.item_id === itemId ? { ...item, quantity: newQuantity } : item
     );
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-    setCartCount(updated.reduce((total, item) => total + (item.quantity || 1), 0));
+    setCartCount(
+      updated.reduce((total, item) => total + (item.quantity || 1), 0)
+    );
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
   const removeFromCartModal = (itemId) => {
-    const updated = cartItems.filter(item => item.item_id !== itemId);
+    const updated = cartItems.filter((item) => item.item_id !== itemId);
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-    setCartCount(updated.reduce((total, item) => total + (item.quantity || 1), 0));
+    setCartCount(
+      updated.reduce((total, item) => total + (item.quantity || 1), 0)
+    );
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
   const removeFromWishlistModal = (itemId) => {
-    const updated = wishlistItems.filter(item => item.item_id !== itemId);
+    const updated = wishlistItems.filter((item) => item.item_id !== itemId);
     setWishlistItems(updated);
     localStorage.setItem("favorites", JSON.stringify(updated));
     setFavoritesCount(updated.length);
@@ -112,7 +116,7 @@ const ProductDetail = () => {
 
   const addWishlistItemToCart = (item) => {
     const currentCart = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const existingItem = currentCart.find(c => c.item_id === item.item_id);
+    const existingItem = currentCart.find((c) => c.item_id === item.item_id);
     if (existingItem) {
       existingItem.quantity += 1;
     } else {
@@ -120,12 +124,15 @@ const ProductDetail = () => {
     }
     localStorage.setItem("cartItems", JSON.stringify(currentCart));
     setCartItems(currentCart);
-    setCartCount(currentCart.reduce((total, i) => total + (i.quantity || 1), 0));
+    setCartCount(
+      currentCart.reduce((total, i) => total + (i.quantity || 1), 0)
+    );
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
   const cartTotal = cartItems.reduce(
-    (total, item) => total + (item.prices?.sale_price || 0) * (item.quantity || 1),
+    (total, item) =>
+      total + (item.prices?.sale_price || 0) * (item.quantity || 1),
     0
   );
 
@@ -152,7 +159,9 @@ const ProductDetail = () => {
       try {
         setLoading(true);
         // Fetch specific product
-        const response = await fetch(`http://localhost:8000/products/${productId}`);
+        const response = await fetch(
+          `http://localhost:8000/products/${productId}`
+        );
         if (response.ok) {
           const data = await response.json();
           setProduct(data);
@@ -180,7 +189,9 @@ const ProductDetail = () => {
   const handleAddToCart = () => {
     // Get existing cart from localStorage
     const existingCart = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const existingItem = existingCart.find((item) => item.item_id === product.item_id);
+    const existingItem = existingCart.find(
+      (item) => item.item_id === product.item_id
+    );
 
     if (existingItem) {
       existingItem.quantity += quantity;
@@ -191,7 +202,9 @@ const ProductDetail = () => {
     localStorage.setItem("cartItems", JSON.stringify(existingCart));
     setAddedToCart(true);
     // Update cart count immediately
-    setCartCount(existingCart.reduce((total, item) => total + (item.quantity || 1), 0));
+    setCartCount(
+      existingCart.reduce((total, item) => total + (item.quantity || 1), 0)
+    );
     setTimeout(() => setAddedToCart(false), 2000);
 
     // Dispatch custom event to notify other components
@@ -199,10 +212,14 @@ const ProductDetail = () => {
   };
 
   const toggleFavorite = () => {
-    const existingFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    
+    const existingFavorites = JSON.parse(
+      localStorage.getItem("favorites") || "[]"
+    );
+
     if (isFavorite) {
-      const filtered = existingFavorites.filter((item) => item.item_id !== product.item_id);
+      const filtered = existingFavorites.filter(
+        (item) => item.item_id !== product.item_id
+      );
       localStorage.setItem("favorites", JSON.stringify(filtered));
       setFavoritesCount(filtered.length);
     } else {
@@ -210,7 +227,7 @@ const ProductDetail = () => {
       localStorage.setItem("favorites", JSON.stringify(existingFavorites));
       setFavoritesCount(existingFavorites.length);
     }
-    
+
     setIsFavorite(!isFavorite);
     window.dispatchEvent(new Event("favoritesUpdated"));
   };
@@ -251,7 +268,9 @@ const ProductDetail = () => {
         <div className="container">
           <div className="not-found">
             <h2>Product Not Found</h2>
-            <p>The product you're looking for doesn't exist or has been removed.</p>
+            <p>
+              The product you're looking for doesn't exist or has been removed.
+            </p>
             <Link to="/" className="back-link">
               <FaArrowLeft /> Back to Shop
             </Link>
@@ -274,11 +293,25 @@ const ProductDetail = () => {
               <Link to="/" className="back-link-header">
                 <FaArrowLeft size={18} />
               </Link>
-              <button className="icon-btn" onClick={() => { refreshWishlist(); setIsWishlistOpen(true); }}>
+              <button
+                className="icon-btn"
+                onClick={() => {
+                  refreshWishlist();
+                  setIsWishlistOpen(true);
+                }}
+              >
                 <FaHeart size={20} />
-                {favoritesCount > 0 && <span className="badge">{favoritesCount}</span>}
+                {favoritesCount > 0 && (
+                  <span className="badge">{favoritesCount}</span>
+                )}
               </button>
-              <button className="icon-btn" onClick={() => { refreshCart(); setIsCartOpen(true); }}>
+              <button
+                className="icon-btn"
+                onClick={() => {
+                  refreshCart();
+                  setIsCartOpen(true);
+                }}
+              >
                 <FaShoppingCart size={20} />
                 {cartCount > 0 && <span className="badge">{cartCount}</span>}
               </button>
@@ -308,7 +341,9 @@ const ProductDetail = () => {
             <div className="product-image-section">
               <div className="main-image">
                 {calculateDiscount() > 0 && (
-                  <span className="discount-badge">-{calculateDiscount()}%</span>
+                  <span className="discount-badge">
+                    -{calculateDiscount()}%
+                  </span>
                 )}
                 <img
                   src={product.image_url}
@@ -437,8 +472,7 @@ const ProductDetail = () => {
               {/* Manufacturer Info */}
               {product.manufacturer_address && (
                 <div className="manufacturer-info">
-                  <strong>Made in:</strong>{" "}
-                  {product.manufacturer_address.city},{" "}
+                  <strong>Made in:</strong> {product.manufacturer_address.city},{" "}
                   {product.manufacturer_address.country}
                 </div>
               )}
@@ -516,10 +550,18 @@ const ProductDetail = () => {
       {/* Cart Modal */}
       {isCartOpen && (
         <div className="modal-overlay" onClick={() => setIsCartOpen(false)}>
-          <div className="modal-content cart-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-content cart-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2><FaShoppingCart /> Shopping Cart</h2>
-              <button className="modal-close" onClick={() => setIsCartOpen(false)}>
+              <h2>
+                <FaShoppingCart /> Shopping Cart
+              </h2>
+              <button
+                className="modal-close"
+                onClick={() => setIsCartOpen(false)}
+              >
                 <FaTimes />
               </button>
             </div>
@@ -539,23 +581,43 @@ const ProductDetail = () => {
                           alt={item.item_name}
                           className="cart-item-image"
                           onError={(e) => {
-                            e.target.src = "https://via.placeholder.com/80x80?text=No+Image";
+                            e.target.src =
+                              "https://via.placeholder.com/80x80?text=No+Image";
                           }}
                         />
                         <div className="cart-item-details">
                           <h4>{item.item_name}</h4>
-                          <p className="cart-item-price">${item.prices?.sale_price?.toFixed(2)}</p>
+                          <p className="cart-item-price">
+                            ${item.prices?.sale_price?.toFixed(2)}
+                          </p>
                           <div className="cart-item-quantity">
-                            <button onClick={() => updateCartQuantity(item.item_id, (item.quantity || 1) - 1)}>
+                            <button
+                              onClick={() =>
+                                updateCartQuantity(
+                                  item.item_id,
+                                  (item.quantity || 1) - 1
+                                )
+                              }
+                            >
                               <FaMinus size={10} />
                             </button>
                             <span>{item.quantity || 1}</span>
-                            <button onClick={() => updateCartQuantity(item.item_id, (item.quantity || 1) + 1)}>
+                            <button
+                              onClick={() =>
+                                updateCartQuantity(
+                                  item.item_id,
+                                  (item.quantity || 1) + 1
+                                )
+                              }
+                            >
                               <FaPlus size={10} />
                             </button>
                           </div>
                         </div>
-                        <button className="remove-item" onClick={() => removeFromCartModal(item.item_id)}>
+                        <button
+                          className="remove-item"
+                          onClick={() => removeFromCartModal(item.item_id)}
+                        >
                           <FaTrash />
                         </button>
                       </div>
@@ -576,10 +638,18 @@ const ProductDetail = () => {
       {/* Wishlist Modal */}
       {isWishlistOpen && (
         <div className="modal-overlay" onClick={() => setIsWishlistOpen(false)}>
-          <div className="modal-content wishlist-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-content wishlist-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2><FaHeart /> Wishlist</h2>
-              <button className="modal-close" onClick={() => setIsWishlistOpen(false)}>
+              <h2>
+                <FaHeart /> Wishlist
+              </h2>
+              <button
+                className="modal-close"
+                onClick={() => setIsWishlistOpen(false)}
+              >
                 <FaTimes />
               </button>
             </div>
@@ -598,18 +668,27 @@ const ProductDetail = () => {
                         alt={item.item_name}
                         className="wishlist-item-image"
                         onError={(e) => {
-                          e.target.src = "https://via.placeholder.com/80x80?text=No+Image";
+                          e.target.src =
+                            "https://via.placeholder.com/80x80?text=No+Image";
                         }}
                       />
                       <div className="wishlist-item-details">
                         <h4>{item.item_name}</h4>
-                        <p className="wishlist-item-price">${item.prices?.sale_price?.toFixed(2)}</p>
+                        <p className="wishlist-item-price">
+                          ${item.prices?.sale_price?.toFixed(2)}
+                        </p>
                       </div>
                       <div className="wishlist-item-actions">
-                        <button className="add-to-cart-sm" onClick={() => addWishlistItemToCart(item)}>
+                        <button
+                          className="add-to-cart-sm"
+                          onClick={() => addWishlistItemToCart(item)}
+                        >
                           <FaShoppingCart /> Add
                         </button>
-                        <button className="remove-wishlist" onClick={() => removeFromWishlistModal(item.item_id)}>
+                        <button
+                          className="remove-wishlist"
+                          onClick={() => removeFromWishlistModal(item.item_id)}
+                        >
                           <FaTrash />
                         </button>
                       </div>

@@ -62,10 +62,10 @@ const EcommerceStore = () => {
       const saved = localStorage.getItem("favorites");
       if (saved) setFavorites(JSON.parse(saved));
     };
-    
+
     window.addEventListener("cartUpdated", handleCartUpdate);
     window.addEventListener("favoritesUpdated", handleFavoritesUpdate);
-    
+
     return () => {
       window.removeEventListener("cartUpdated", handleCartUpdate);
       window.removeEventListener("favoritesUpdated", handleFavoritesUpdate);
@@ -118,7 +118,9 @@ const EcommerceStore = () => {
   // Add item to cart
   const addToCart = (product) => {
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.item_id === product.item_id);
+      const existingItem = prevItems.find(
+        (item) => item.item_id === product.item_id
+      );
       if (existingItem) {
         // Increase quantity if already in cart
         return prevItems.map((item) =>
@@ -134,7 +136,9 @@ const EcommerceStore = () => {
 
   // Remove item from cart
   const removeFromCart = (productId) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.item_id !== productId));
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.item_id !== productId)
+    );
   };
 
   // Update item quantity in cart
@@ -153,7 +157,9 @@ const EcommerceStore = () => {
   // Toggle favorite status
   const toggleFavorite = (product) => {
     setFavorites((prevFavorites) => {
-      const isFavorite = prevFavorites.some((item) => item.item_id === product.item_id);
+      const isFavorite = prevFavorites.some(
+        (item) => item.item_id === product.item_id
+      );
       if (isFavorite) {
         return prevFavorites.filter((item) => item.item_id !== product.item_id);
       }
@@ -173,7 +179,10 @@ const EcommerceStore = () => {
   );
 
   // Get total items in cart
-  const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const cartItemsCount = cartItems.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
   // Component returns JSX for the entire store layout
   return (
@@ -201,12 +210,24 @@ const EcommerceStore = () => {
                 {/* User icon with size 20px */}
                 <FaUser size={20} />
               </a>
-              <a href="#wishlist" onClick={(e) => { e.preventDefault(); setIsWishlistOpen(true); }}>
+              <a
+                href="#wishlist"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsWishlistOpen(true);
+                }}
+              >
                 {/* Heart icon for favorites with size 20px */}
                 <FaHeart size={20} />
                 <span className="badge">{favorites.length}</span>
               </a>
-              <a href="#cart" onClick={(e) => { e.preventDefault(); setIsCartOpen(true); }}>
+              <a
+                href="#cart"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsCartOpen(true);
+                }}
+              >
                 {/* Shopping cart icon with size 20px */}
                 <FaShoppingCart size={20} />
                 <span className="badge">{cartItemsCount}</span>
@@ -256,7 +277,10 @@ const EcommerceStore = () => {
               <div className="products-grid">
                 {filteredProducts.map((product) => (
                   <div key={product.item_id} className="product-card">
-                    <Link to={`/product/${product.item_id}`} className="product-image-link">
+                    <Link
+                      to={`/product/${product.item_id}`}
+                      className="product-image-link"
+                    >
                       <div className="product-image">
                         <img
                           src={
@@ -279,15 +303,20 @@ const EcommerceStore = () => {
                         )}
                       </div>
                     </Link>
-                    <button 
-                      className={`wishlist-btn ${isFavorite(product.item_id) ? 'active' : ''}`}
+                    <button
+                      className={`wishlist-btn ${
+                        isFavorite(product.item_id) ? "active" : ""
+                      }`}
                       onClick={() => toggleFavorite(product)}
                     >
                       <FaHeart />
                     </button>
                     <div className="product-info">
                       <span className="product-brand">{product.brand}</span>
-                      <Link to={`/product/${product.item_id}`} className="product-name-link">
+                      <Link
+                        to={`/product/${product.item_id}`}
+                        className="product-name-link"
+                      >
                         <h3 className="product-name">{product.item_name}</h3>
                       </Link>
                       <p className="product-description">
@@ -311,7 +340,10 @@ const EcommerceStore = () => {
                           </span>
                         )}
                       </div>
-                      <button className="add-to-cart-btn" onClick={() => addToCart(product)}>
+                      <button
+                        className="add-to-cart-btn"
+                        onClick={() => addToCart(product)}
+                      >
                         <FaShoppingCart /> Add to Cart
                       </button>
                     </div>
@@ -435,10 +467,18 @@ const EcommerceStore = () => {
       {/* Cart Modal */}
       {isCartOpen && (
         <div className="modal-overlay" onClick={() => setIsCartOpen(false)}>
-          <div className="modal-content cart-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-content cart-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2><FaShoppingCart /> Shopping Cart</h2>
-              <button className="modal-close" onClick={() => setIsCartOpen(false)}>
+              <h2>
+                <FaShoppingCart /> Shopping Cart
+              </h2>
+              <button
+                className="modal-close"
+                onClick={() => setIsCartOpen(false)}
+              >
                 <FaTimes />
               </button>
             </div>
@@ -453,23 +493,39 @@ const EcommerceStore = () => {
                   {cartItems.map((item) => (
                     <div key={item.item_id} className="cart-item">
                       <img
-                        src={item.image_url || "https://via.placeholder.com/80x80?text=No+Image"}
+                        src={
+                          item.image_url ||
+                          "https://via.placeholder.com/80x80?text=No+Image"
+                        }
                         alt={item.item_name}
                       />
                       <div className="cart-item-info">
                         <h4>{item.item_name}</h4>
-                        <p className="cart-item-price">${item.prices.sale_price.toFixed(2)}</p>
+                        <p className="cart-item-price">
+                          ${item.prices.sale_price.toFixed(2)}
+                        </p>
                       </div>
                       <div className="cart-item-quantity">
-                        <button onClick={() => updateQuantity(item.item_id, item.quantity - 1)}>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.item_id, item.quantity - 1)
+                          }
+                        >
                           <FaMinus />
                         </button>
                         <span>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.item_id, item.quantity + 1)}>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.item_id, item.quantity + 1)
+                          }
+                        >
                           <FaPlus />
                         </button>
                       </div>
-                      <button className="cart-item-remove" onClick={() => removeFromCart(item.item_id)}>
+                      <button
+                        className="cart-item-remove"
+                        onClick={() => removeFromCart(item.item_id)}
+                      >
                         <FaTrash />
                       </button>
                     </div>
@@ -493,10 +549,18 @@ const EcommerceStore = () => {
       {/* Wishlist Modal */}
       {isWishlistOpen && (
         <div className="modal-overlay" onClick={() => setIsWishlistOpen(false)}>
-          <div className="modal-content wishlist-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-content wishlist-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2><FaHeart /> My Wishlist</h2>
-              <button className="modal-close" onClick={() => setIsWishlistOpen(false)}>
+              <h2>
+                <FaHeart /> My Wishlist
+              </h2>
+              <button
+                className="modal-close"
+                onClick={() => setIsWishlistOpen(false)}
+              >
                 <FaTimes />
               </button>
             </div>
@@ -511,18 +575,32 @@ const EcommerceStore = () => {
                   {favorites.map((item) => (
                     <div key={item.item_id} className="wishlist-item">
                       <img
-                        src={item.image_url || "https://via.placeholder.com/80x80?text=No+Image"}
+                        src={
+                          item.image_url ||
+                          "https://via.placeholder.com/80x80?text=No+Image"
+                        }
                         alt={item.item_name}
                       />
                       <div className="wishlist-item-info">
                         <h4>{item.item_name}</h4>
-                        <p className="wishlist-item-price">${item.prices.sale_price.toFixed(2)}</p>
+                        <p className="wishlist-item-price">
+                          ${item.prices.sale_price.toFixed(2)}
+                        </p>
                       </div>
                       <div className="wishlist-item-actions">
-                        <button className="add-to-cart-sm" onClick={() => { addToCart(item); toggleFavorite(item); }}>
+                        <button
+                          className="add-to-cart-sm"
+                          onClick={() => {
+                            addToCart(item);
+                            toggleFavorite(item);
+                          }}
+                        >
                           <FaShoppingCart /> Add to Cart
                         </button>
-                        <button className="remove-wishlist" onClick={() => toggleFavorite(item)}>
+                        <button
+                          className="remove-wishlist"
+                          onClick={() => toggleFavorite(item)}
+                        >
                           <FaTrash />
                         </button>
                       </div>
