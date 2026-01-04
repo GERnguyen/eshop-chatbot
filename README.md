@@ -36,7 +36,6 @@
 | **Lưu lịch sử hội thoại** | Nhớ những gì đã nói trong cuộc trò chuyện              |
 | **Thêm vào giỏ hàng**     | Khách có thể yêu cầu chatbot thêm sản phẩm vào giỏ     |
 | **Quick Replies**         | Các nút gợi ý nhanh giúp khách hàng dễ dàng tương tác  |
-| **Typing Indicator**      | Hiển thị trạng thái "đang gõ" khi chờ bot trả lời      |
 
 ---
 
