@@ -20,11 +20,15 @@ import ReactMarkdown from "react-markdown";
 
 // Quick reply suggestions
 const QUICK_REPLIES = [
-  { icon: FaCouch, text: "Show me sofas", label: "Sofas" },
-  { icon: FaBed, text: "Find a bed", label: "Beds" },
-  { icon: FaChair, text: "Browse chairs", label: "Chairs" },
-  { icon: FaFire, text: "What's on sale?", label: "Sales" },
-  { icon: FaQuestionCircle, text: "How can you help me?", label: "Help" },
+  { icon: FaCouch, text: "Tìm ghế sofa", label: "Sofa" },
+  { icon: FaBed, text: "Tìm giường ngủ", label: "Giường" },
+  { icon: FaChair, text: "Xem các loại ghế", label: "Ghế" },
+  { icon: FaFire, text: "Sản phẩm đang giảm giá?", label: "Khuyến mãi" },
+  {
+    icon: FaQuestionCircle,
+    text: "Bạn có thể giúp gì cho tôi?",
+    label: "Trợ giúp",
+  },
 ];
 
 // Main chat widget component
@@ -77,7 +81,7 @@ const ChatWidget = () => {
       // Create initial greeting message
       const initialMessages = [
         {
-          text: "Hello! I'm your shopping assistant. How can I help you today?", // Greeting text
+          text: "Xin chào! Tôi là trợ lý mua sắm của bạn. Tôi có thể giúp gì cho bạn hôm nay?", // Greeting text
           isAgent: true, // Flag to indicate this is from the AI agent
         },
       ];
@@ -145,7 +149,9 @@ const ChatWidget = () => {
       addItemToCart(itemId);
     }
     // Check for ADD_TO_WISHLIST action
-    const wishlistMatch = responseText.match(/\[\[ACTION:ADD_TO_WISHLIST:([^\]]+)\]\]/);
+    const wishlistMatch = responseText.match(
+      /\[\[ACTION:ADD_TO_WISHLIST:([^\]]+)\]\]/
+    );
     if (wishlistMatch) {
       const itemId = wishlistMatch[1];
       addItemToWishlist(itemId);
@@ -160,8 +166,12 @@ const ChatWidget = () => {
       const response = await fetch(`http://localhost:8000/products/${itemId}`);
       if (response.ok) {
         const product = await response.json();
-        const existingCart = JSON.parse(localStorage.getItem("cartItems") || "[]");
-        const existingItem = existingCart.find(item => item.item_id === product.item_id);
+        const existingCart = JSON.parse(
+          localStorage.getItem("cartItems") || "[]"
+        );
+        const existingItem = existingCart.find(
+          (item) => item.item_id === product.item_id
+        );
         if (existingItem) {
           existingItem.quantity += 1;
         } else {
@@ -181,8 +191,12 @@ const ChatWidget = () => {
       const response = await fetch(`http://localhost:8000/products/${itemId}`);
       if (response.ok) {
         const product = await response.json();
-        const existingFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        if (!existingFavorites.some(item => item.item_id === product.item_id)) {
+        const existingFavorites = JSON.parse(
+          localStorage.getItem("favorites") || "[]"
+        );
+        if (
+          !existingFavorites.some((item) => item.item_id === product.item_id)
+        ) {
           existingFavorites.push(product);
           localStorage.setItem("favorites", JSON.stringify(existingFavorites));
           window.dispatchEvent(new Event("favoritesUpdated"));
@@ -197,10 +211,10 @@ const ChatWidget = () => {
   const handleSendMessage = async (e, quickReplyText = null) => {
     // Prevent default form submission behavior (page refresh)
     if (e) e.preventDefault();
-    
+
     const messageText = quickReplyText || inputValue;
     if (!messageText.trim()) return;
-    
+
     // Log user input for debugging
     console.log(messageText);
 
@@ -265,10 +279,13 @@ const ChatWidget = () => {
       // Log any errors that occur during API call
       console.error("Error:", error);
       // Add error message
-      setMessages((prevMessages) => [...prevMessages, {
-        text: "Sorry, I'm having trouble connecting. Please try again.",
-        isAgent: true,
-      }]);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          text: "Sorry, I'm having trouble connecting. Please try again.",
+          isAgent: true,
+        },
+      ]);
     } finally {
       // Hide typing indicator
       setIsTyping(false);
