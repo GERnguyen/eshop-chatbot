@@ -6,13 +6,26 @@ import { useNavigate } from "react-router-dom";
 import {
   FaRobot,
   FaPaperPlane,
-  FaTimes,
   FaCommentDots,
   FaMinus,
   FaTrash,
+  FaCouch,
+  FaBed,
+  FaChair,
+  FaFire,
+  FaQuestionCircle,
 } from "react-icons/fa";
 // Import ReactMarkdown for rendering markdown in chat messages
 import ReactMarkdown from "react-markdown";
+
+// Quick reply suggestions
+const QUICK_REPLIES = [
+  { icon: FaCouch, text: "Show me sofas", label: "Sofas" },
+  { icon: FaBed, text: "Find a bed", label: "Beds" },
+  { icon: FaChair, text: "Browse chairs", label: "Chairs" },
+  { icon: FaFire, text: "What's on sale?", label: "Sales" },
+  { icon: FaQuestionCircle, text: "How can you help me?", label: "Help" },
+];
 
 // Main chat widget component
 const ChatWidget = () => {
@@ -35,6 +48,8 @@ const ChatWidget = () => {
   const [threadId, setThreadId] = useState(() => {
     return localStorage.getItem("chatThreadId") || null;
   });
+  // State for typing indicator
+  const [isTyping, setIsTyping] = useState(false);
   // Ref to reference the bottom of messages container for auto-scrolling
   const messagesEndRef = useRef(null);
 
@@ -121,16 +136,77 @@ const ChatWidget = () => {
   // Log messages to console for debugging purposes
   console.log(messages);
 
+  // Function to handle action commands from bot response (e.g., add to cart)
+  const handleActionCommand = (responseText) => {
+    // Check for ADD_TO_CART action
+    const cartMatch = responseText.match(/\[\[ACTION:ADD_TO_CART:([^\]]+)\]\]/);
+    if (cartMatch) {
+      const itemId = cartMatch[1];
+      addItemToCart(itemId);
+    }
+    // Check for ADD_TO_WISHLIST action
+    const wishlistMatch = responseText.match(/\[\[ACTION:ADD_TO_WISHLIST:([^\]]+)\]\]/);
+    if (wishlistMatch) {
+      const itemId = wishlistMatch[1];
+      addItemToWishlist(itemId);
+    }
+    // Remove action commands from displayed text
+    return responseText.replace(/\[\[ACTION:[^\]]+\]\]/g, "").trim();
+  };
+
+  // Function to add item to cart by item_id
+  const addItemToCart = async (itemId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/products/${itemId}`);
+      if (response.ok) {
+        const product = await response.json();
+        const existingCart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+        const existingItem = existingCart.find(item => item.item_id === product.item_id);
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          existingCart.push({ ...product, quantity: 1 });
+        }
+        localStorage.setItem("cartItems", JSON.stringify(existingCart));
+        window.dispatchEvent(new Event("cartUpdated"));
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
+  };
+
+  // Function to add item to wishlist by item_id
+  const addItemToWishlist = async (itemId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/products/${itemId}`);
+      if (response.ok) {
+        const product = await response.json();
+        const existingFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+        if (!existingFavorites.some(item => item.item_id === product.item_id)) {
+          existingFavorites.push(product);
+          localStorage.setItem("favorites", JSON.stringify(existingFavorites));
+          window.dispatchEvent(new Event("favoritesUpdated"));
+        }
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+    }
+  };
+
   // Function to send user message and get AI response
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = async (e, quickReplyText = null) => {
     // Prevent default form submission behavior (page refresh)
-    e.preventDefault();
+    if (e) e.preventDefault();
+    
+    const messageText = quickReplyText || inputValue;
+    if (!messageText.trim()) return;
+    
     // Log user input for debugging
-    console.log(inputValue);
+    console.log(messageText);
 
     // Create message object for user's input
     const message = {
-      text: inputValue, // User's typed message
+      text: messageText, // User's typed message
       isAgent: false, // Flag indicating this is from user, not AI
     };
 
@@ -138,6 +214,8 @@ const ChatWidget = () => {
     setMessages((prevMessages) => [...prevMessages, message]);
     // Clear input field immediately after sending
     setInputValue("");
+    // Show typing indicator
+    setIsTyping(true);
 
     // Determine API endpoint: use existing thread if available, otherwise create new
     const endpoint = threadId
@@ -152,7 +230,7 @@ const ChatWidget = () => {
           "Content-Type": "application/json", // Tell server we're sending JSON
         },
         body: JSON.stringify({
-          message: inputValue, // Send user's message in request body
+          message: messageText, // Send user's message in request body
         }),
       });
 
@@ -167,9 +245,12 @@ const ChatWidget = () => {
       // Log successful response for debugging
       console.log("Success:", data);
 
+      // Process action commands and clean response text
+      const cleanedResponse = handleActionCommand(data.response);
+
       // Create message object for AI agent's response
       const agentResponse = {
-        text: data.response, // AI's response text
+        text: cleanedResponse, // AI's response text (cleaned)
         isAgent: true, // Flag indicating this is from AI agent
         threadId: data.threadId, // Thread ID for conversation continuity
       };
@@ -183,7 +264,20 @@ const ChatWidget = () => {
     } catch (error) {
       // Log any errors that occur during API call
       console.error("Error:", error);
+      // Add error message
+      setMessages((prevMessages) => [...prevMessages, {
+        text: "Sorry, I'm having trouble connecting. Please try again.",
+        isAgent: true,
+      }]);
+    } finally {
+      // Hide typing indicator
+      setIsTyping(false);
     }
+  };
+
+  // Handle quick reply click
+  const handleQuickReply = (text) => {
+    handleSendMessage(null, text);
   };
 
   // Render the chat widget UI
@@ -222,6 +316,25 @@ const ChatWidget = () => {
 
           {/* Messages container */}
           <div className="chat-messages">
+            {/* Quick replies - show only when no messages or after greeting */}
+            {messages.length <= 1 && (
+              <div className="quick-replies">
+                <p className="quick-replies-label">Quick suggestions:</p>
+                <div className="quick-replies-buttons">
+                  {QUICK_REPLIES.map((reply, index) => (
+                    <button
+                      key={index}
+                      className="quick-reply-btn"
+                      onClick={() => handleQuickReply(reply.text)}
+                    >
+                      <reply.icon size={14} />
+                      <span>{reply.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Map through messages array to render each message */}
             {messages.map((message, index) => (
               // Container for each message (key prop required for React lists)
@@ -280,6 +393,17 @@ const ChatWidget = () => {
                 </div>
               </div>
             ))}
+
+            {/* Typing indicator */}
+            {isTyping && (
+              <div className="message message-bot typing-indicator">
+                <div className="typing-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            )}
 
             {/* Invisible div at bottom for auto-scroll reference */}
             <div ref={messagesEndRef} />
