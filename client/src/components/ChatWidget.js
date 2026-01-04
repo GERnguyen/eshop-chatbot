@@ -44,10 +44,26 @@ const ChatWidget = () => {
     setIsOpen(!isOpen)
   }
 
+  // Ref to reference the textarea for auto-resize
+  const textareaRef = useRef(null)
+
   // Function to handle changes in the input field
   const handleInputChange = (e) => {
     // Update inputValue state with current text field value
     setInputValue(e.target.value)
+    // Auto-resize textarea
+    autoResizeTextarea()
+  }
+
+  // Function to auto-resize textarea based on content
+  const autoResizeTextarea = () => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      // Reset height to auto to get correct scrollHeight
+      textarea.style.height = 'auto'
+      // Set height to scrollHeight (content height), max 120px
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px'
+    }
   }
 
   // Log messages to console for debugging purposes
@@ -157,13 +173,27 @@ const ChatWidget = () => {
 
           {/* Input form for sending messages */}
           <form className="chat-input-container" onSubmit={handleSendMessage}>
-            {/* Text input field */}
-            <input
-              type="text"                           // Input type
+            {/* Textarea input field with auto-expand */}
+            <textarea
+              ref={textareaRef}                     // Ref for auto-resize
               className="message-input"             // CSS class for styling
               placeholder="Type your message..."    // Placeholder text
               value={inputValue}                    // Controlled input value
               onChange={handleInputChange}          // Handle input changes
+              onKeyDown={(e) => {
+                // Submit on Enter (without Shift)
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  if (inputValue.trim() !== '') {
+                    handleSendMessage(e)
+                    // Reset textarea height after sending
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = 'auto'
+                    }
+                  }
+                }
+              }}
+              rows={1}                              // Start with 1 row
             />
             {/* Send button */}
             <button
